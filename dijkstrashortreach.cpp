@@ -23,15 +23,15 @@
 
 using namespace std;
 
-typedef pair<struct vertex*,int> neighbour;//a neightbour vertex and an int - the weight of the edge connecting it
+typedef pair<struct vertex,int> neighbour;//a neightbour vertex and an int - the weight of the edge connecting it
 
 typedef struct vertex{
     
-    struct vertex* parent;
+    short label;
     int dist;
-    vector<neighbour> nei;
-    int sz;
-    vertex() : dist(-1), parent(NULL),nei(),sz(0) {}
+    vertex() : label(0) , dist(-1) {}
+    vertex(short olabel) : label(olabel) , dist(-1) {}
+    vertex(short olabel,int odist) : label(olabel) , dist(odist) {}
 } vertex;
  
 
@@ -61,104 +61,117 @@ bool relex(vertex* v, vertex* u,int edge_weight){//u and v are not null
     
     if(u->dist == -1 || u->dist > v->dist + edge_weight){
         u->dist = v->dist + edge_weight;
-        u->parent = v;
         return true;
     }
     return false;
     //cout << "u = "<< u << " u->dist = "<<u->dist<<" after"<<endl;
 }
-void print_dists_and_reset(vector<vertex*> graph, int s,int n){
-    for(int i=0;i<n;i++){
+
+void print_dists(vector<vertex>& graph, short s){
+    for(size_t i=0;i<graph.size();i++){
         if(i == s-1)
             continue;
-        if(!graph[i])
-            cout<<-1<<" ";
-        else
-            cout<<graph[i]->dist<<" ";
-        delete graph[i];
-        graph[i] = NULL;
+        cout<<graph[i].dist<<" ";
     }
     cout<<endl;
 }
+
 bool stam_comp(const int& e1, const int& e2) {
     return e1<e2;
 }
-auto cmp = [](vertex*& e1, vertex*& e2) {
+auto cmp = [](vertex e1, vertex e2) {
     //cout <<"cmp "<<e1<<" "<<e2<<endl;
     //cout <<"cmp "<<e1->dist<<" "<<e2->dist<<endl;
-    if(!e2)
+    
+    if(e2.dist == -1)
         return false;
-    if(e2->dist == -1)
-        return false;
-    if(!e1 || e1->dist == -1)
+    if(e1.dist == -1)
         return true;
-    return e1->dist > e2->dist; 
+    return e1.dist > e2.dist; 
 };
 
-void dijkstra(vector<vertex*> graph,int s,int sz){
+void dijkstra(vector<vertex>& graph, vector<vector<neighbour>>& neighbours, short s){
     
-    if(!graph[s-1])
+    
+    if(!graph[s-1].label)    
         return;
-    graph[s-1]->dist = 0;
     
+    graph[s-1].dist = 0;
+    
+    vector<bool> founds(graph.size(),false);
   
-    priority_queue<vertex*,vector<vertex*>,decltype(cmp)> vqueue(cmp);
+    priority_queue<vertex,vector<vertex>,decltype(cmp)> vqueue(cmp);
     
     vqueue.push(graph[s-1]);
+    
     while(!vqueue.empty()){
-        vertex* v = vqueue.top();
         
-       
-        if(!v){
-            cout<<"cont"<<endl;
-            continue;//if the samllest is null then all the rest must also be null, so we can break
-        }
-        for(int i = 0; i<v->sz;i++){
+        vertex v;
+        do{
+            v = vqueue.top();
+            vqueue.pop();
+        }while(!vqueue.empty() && founds[v.label-1]);
+        
+        //if(founds[v.label-1])
+        //    return;
+        founds[v.label-1] = true;
+        
+    
+        
+        size_t sz = neighbours[v.label-1].size();//vnei is a vector
+        for(size_t i = 0; i<sz;i++){
             
-            if(relex(v,v->nei[i].first,v->nei[i].second))
-                vqueue.push(v->nei[i].first);
+            vertex nei = neighbours[v.label-1][i].first;
+            int w = neighbours[v.label-1][i].second;
+            
+            
+            if(!(founds[nei.label-1]) && 
+               (graph[nei.label-1].dist == -1 || graph[nei.label-1].dist > v.dist+w)){
+                graph[nei.label-1].dist = v.dist+w;
+                vqueue.push(vertex(nei.label,v.dist+w));    
+            } 
         }
-         vqueue.pop();
     }
 }
+ 
 
 int main(){
     int t;
     cin >> t;
     
-    vector<vertex*>graph(3000,NULL);
-    
     for(int a0 = 0; a0 < t; a0++){
         int n;
         int m;
         cin >> n >> m;
-        vector<vertex*>graph(n,NULL);//array of nodes
+        vector<vertex>graph(n);
+        vector<vector<neighbour>>neighbours(n);
+        
         for(int a1 = 0; a1 < m; a1++){
-            int x;
-            int y;
+            short x;
+            short y;
             int r;
             cin >> x >> y >> r;
-            vertex* vx = graph[x-1] ? graph[x-1] : new vertex;
-            vertex* vy = graph[y-1] ? graph[y-1] : new vertex;
+            vertex vx = graph[x-1].label ? graph[x-1] : vertex(x);
+            vertex vy = graph[y-1].label ? graph[y-1] : vertex(y);
             
-            vx->nei.push_back({vy,r});
-            vx->sz++;
-            vy->nei.push_back({vx,r});
-            vy->sz++;
-            if(!graph[x-1]){
+            neighbours[x-1].push_back({y,r});
+            
+            neighbours[y-1].push_back({x,r});
+            
+            if(!graph[x-1].label){
                 graph[x-1] = vx;
             }
-            if(!graph[y-1]){
+            if(!graph[y-1].label){
                 graph[y-1] = vy;
             }
         }
-        int s;
+        short s;
        
         cin >> s;
         
-        dijkstra(graph,s,n);
-        print_dists_and_reset(graph,s,n);
-        //todo - kill graph
+        dijkstra(graph,neighbours,s);
+        print_dists(graph,s);
     }
     return 0;
 }
+
