@@ -24,8 +24,11 @@ int rm_idx = 0;
 int add_idx = 0;
 
 /* 
-    Buggy and complicated solution to https://www.hackerrank.com/challenges/median/problem
-    Passes all tests except of 2
+    The algorithm in the first submit of this solution was  ok the problem was with the printing , need to deal both with overflow - convert to long
+    and case the median is not integer - instead of converting to double I print the ".5" as a string
+    Passes all tests!
+
+    The alg is so complecated I forgot what I did in detail - in general: mymap - keys are the input values and the values of mymap are the number of time the key was enterd
 
 */
 void dump_all(bool is_even,int key_idx,map<int,int>::iterator median_key){
@@ -64,13 +67,24 @@ void print_median(bool is_even,int idx,std::map<int,int>::iterator median_key){
         cout << median_key->first << endl;
     else{
         median_key++;
-        int v2 = median_key->first;
+        long v2 = (long)median_key->first;
         median_key--;
-        int v1 = median_key->first;
-        if((v1+v2)%2 == 0)
+        long v1 = (long)median_key->first;
+        if((v1+v2)%2 == 0){
             cout << ((v1+v2)/2) << endl;
-        else
-            cout << fix(((double)(median_key->first+v2))/2,30) << endl;
+        }
+        else{
+            long avg  =(v1+v2)/2;
+
+            if(avg == 0){
+                if(v1+v2 == 1)
+                    cout <<"0.5"<<endl;
+                else
+                    cout <<"-0.5"<<endl;
+            }
+            else
+                cout << avg<<".5" << endl;
+        }
     }
 }
 
