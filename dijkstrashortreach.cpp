@@ -29,8 +29,9 @@ typedef struct vertex{
     
     struct vertex* parent;
     int dist;
-    list<neighbour> nei;
-    vertex() : dist(-1), parent(NULL),nei() {}
+    vector<neighbour> nei;
+    int sz;
+    vertex() : dist(-1), parent(NULL),nei(),sz(0) {}
 } vertex;
  
 
@@ -66,14 +67,16 @@ bool relex(vertex* v, vertex* u,int edge_weight){//u and v are not null
     return false;
     //cout << "u = "<< u << " u->dist = "<<u->dist<<" after"<<endl;
 }
-void print_dists(vector<vertex*> graph, int s){
-    for(int i=0;i<graph.size();i++){
+void print_dists_and_reset(vector<vertex*> graph, int s,int n){
+    for(int i=0;i<n;i++){
         if(i == s-1)
             continue;
         if(!graph[i])
             cout<<-1<<" ";
         else
             cout<<graph[i]->dist<<" ";
+        delete graph[i];
+        graph[i] = NULL;
     }
     cout<<endl;
 }
@@ -92,41 +95,28 @@ auto cmp = [](vertex*& e1, vertex*& e2) {
     return e1->dist > e2->dist; 
 };
 
-void dijkstra(vector<vertex*> graph,int s){
+void dijkstra(vector<vertex*> graph,int s,int sz){
     
     if(!graph[s-1])
         return;
     graph[s-1]->dist = 0;
-    //cout <<"start = "<<graph[s-1]<<endl;
-    //cout <<"start = "<<graph[s-1]->dist<<endl;
-   // std::Compare cmp = dist_comp;
     
-    priority_queue<vertex*,vector<vertex*>,decltype(cmp)> vqueue(cmp,graph);
-    //priority_queue<int,vector<int>,decltype(stam_comp)> vqueue(*stam_comp,v);
-    //priority_queue<int,vector<int>,decltype(stam_comp)> vqueue(*stam_comp,v);
+  
+    priority_queue<vertex*,vector<vertex*>,decltype(cmp)> vqueue(cmp);
+    
+    vqueue.push(graph[s-1]);
     while(!vqueue.empty()){
         vertex* v = vqueue.top();
         
-        //if(v == graph[s-1])
-        //    cout<<"starting"<<endl;
-       // if(v)
-       //     cout << "v = "<< v << " v->dist = "<<v->dist<<endl; 
-       // else
-       //     cout <<"null"<<endl;
-        
        
-        //cout<<"after pop"<<endl;
         if(!v){
             cout<<"cont"<<endl;
             continue;//if the samllest is null then all the rest must also be null, so we can break
         }
-        for(auto it = v->nei.begin();it != v->nei.end();it++){
-            //if(v == graph[30]||it->first == graph[30]){
-                //cout<< v<<" "<<it->first<<" "<<endl;
-                //cout<< v->dist<<" "<<it->first->dist<<" "<<it->second<<endl;
-            //}
-            if(relex(v,it->first,it->second))
-                vqueue.push(it->first);
+        for(int i = 0; i<v->sz;i++){
+            
+            if(relex(v,v->nei[i].first,v->nei[i].second))
+                vqueue.push(v->nei[i].first);
         }
          vqueue.pop();
     }
@@ -135,6 +125,8 @@ void dijkstra(vector<vertex*> graph,int s){
 int main(){
     int t;
     cin >> t;
+    
+    vector<vertex*>graph(3000,NULL);
     
     for(int a0 = 0; a0 < t; a0++){
         int n;
@@ -149,13 +141,10 @@ int main(){
             vertex* vx = graph[x-1] ? graph[x-1] : new vertex;
             vertex* vy = graph[y-1] ? graph[y-1] : new vertex;
             
-            vx->nei.push_front({vy,r});
-            vy->nei.push_front({vx,r});
-            //if(x-1 == 30)
-            //cout<<"x = "<<x-1<<" vx = "<<vx<<endl;
-            //if(y-1 == 30)
-            //cout<<"y = "<<y-1<<" vy = "<<vy<<endl;
-            
+            vx->nei.push_back({vy,r});
+            vx->sz++;
+            vy->nei.push_back({vx,r});
+            vy->sz++;
             if(!graph[x-1]){
                 graph[x-1] = vx;
             }
@@ -167,8 +156,8 @@ int main(){
        
         cin >> s;
         
-        dijkstra(graph,s);
-        print_dists(graph,s);
+        dijkstra(graph,s,n);
+        print_dists_and_reset(graph,s,n);
         //todo - kill graph
     }
     return 0;
