@@ -1,0 +1,213 @@
+
+#include <map>
+#include <set>
+#include <list>
+#include <cmath>
+#include <ctime>
+#include <deque>
+#include <queue>
+#include <stack>
+#include <bitset>
+#include <cstdio>
+#include <limits>
+#include <vector>
+#include <cstdlib>
+#include <numeric>
+#include <sstream>
+#include <iostream>
+#include <algorithm>
+#include <iomanip>
+using namespace std;
+
+
+
+/*
+void print_median(bool is_even,int idx,std::map<int,int>::iterator median_key){
+    
+     
+    if(mymap.empty()){
+        cout << "Wrong!"<<endl;
+        return;
+    }
+   
+    if(!is_even){
+        cout << median_key->first << endl;
+        return;
+    }
+    if(median_key->second>idx)
+        cout << median_key->first << endl;
+    else{
+        median_key++;
+        long v2 = (long)median_key->first;
+        median_key--;
+        long v1 = (long)median_key->first;
+        if((v1+v2)%2 == 0){
+            cout << ((v1+v2)/2) << endl;
+        }
+        else{
+            long avg  =(v1+v2)/2;
+
+            if(avg == 0){
+                //long m = v1<v2 ? v1 : v2;
+                if(v1+v2 == 1)
+                    cout <<"0.5"<<endl;
+                else
+                    cout <<"-0.5"<<endl;
+            }
+            else
+                cout << avg<<".5" << endl;
+        }
+    }
+}
+*/
+
+
+void adjust(std::multimap<int,int,std::less<int>>& largers, std::multimap<int,int,std::greater<int>>& smallers){
+    size_t ls = largers.size();
+    size_t ss = smallers.size();
+    
+    if(ls-ss>1 || ls-ss<-1){
+        if(ls>ss){
+            int key = largers.being()->first;
+            largers.erase(largers.being());
+            smallers.emplace(std::make_pair(key,key));
+        }
+        else{
+            int key = smallers.being()->first;
+            smallers.erase(smallers.being());
+            largers.emplace(std::make_pair(key,key));
+        }
+    }
+}
+
+int get_median(std::multimap<int,int,std::less<int>> largers, std::multimap<int,int,std::greater<int>>& smallers,double* mod){
+    *mod = 0;
+    
+    if(largers.size() > smallers.size())
+        return largers.begin()->first;
+    else if(largers.size() < smallers.size())
+        return smallers.begin()->first;
+    else{
+        long  m = (long)smallers.begin()->first;
+        long  M = (long)largers.begin()->first;
+        if( (m+M)%2 == 0)
+            return ((int)((m+M)/2));
+        else{
+            if(m+M > 0)
+                *mod = 0.5;
+            if(m+M < 0)
+                *mod = -0.5;
+            return return ((int)((m+M)/2));
+        }
+        
+    }
+}
+bool is_smaller(int val,int median,double extra){
+    if(is_int)
+        return val<median;
+    else
+        return ((double) val) < (((double) median)+extra)
+}
+bool is_larger(int val,int median,bool is_int){
+    if(is_int)
+        return val>median;
+    return ((double) val) > (((double) median)+extra)
+}
+
+template <typename cmp> void remove_key(int key,std::multimap<int,int,cmp> m){
+    
+}
+
+template <typename cmp> void add_key(int key,std::multimap<int,int,cmp> m){
+    
+}
+
+
+
+
+void remove(std::multimap<int,int,std::less<int>> largers, std::multimap<int,int,std::greater<int>>& smallers,int val){
+    if(largers.size() == 0 && smallers.size() == 0){
+        cout << "Wrong!"
+        return;
+    }
+    double mod = false;
+    int median = get_median(largers,smallers,&mod);
+    if(is_smaller(val,median,mod)){
+        remove_key(key,smallers);
+    }
+    else if(is_larger(val,median,mod)){
+        remove_key(key,largers);
+    }
+    else{
+        if(larger.size()>smaller.size())
+            remove_key(key,largers);
+        else
+            remove_key(key,smallers);
+    }
+    adjust(largers,smallers); 
+     
+}
+
+void add(std::multimap<int,int,std::less>& largers, std::multimap<int,int,std::greater<int>>& smallers,int val){
+    
+    if(largers.size() == 0 && smallers.size() == 0){
+        add_key(key,smallers);
+        return;
+    }
+    double mod = false;
+    int median = get_median(largers,smallers,&mod);
+    if(is_smaller(val,median,mod)){
+        add_key(key,smallers);
+    }
+    else if(is_larger(val,median,mod)){
+        add_key(key,largers);
+    }
+    else{
+        if(larger.size()>smaller.size())
+            add_key(key,smallers);
+        else
+            add_key(key,largers);
+    }
+    adjust(largers,smallers); 
+}
+void median(vector<char>& op,vector<int>& val) {
+    
+    std::multimap<int,int,std::greater<int>> largers;
+    std::multimap<int,int,std::greater<int>> smallers;
+    
+    int i =0;
+    
+    do{
+        if(op[i] == 'a'){
+            add(largers,smallers,val[i]);
+        }
+        else{
+            remove(largers,smallers,val[i]);
+        }
+        print_median(largers,smallers);
+        i++;
+    }while(i<op.size());
+         
+}
+
+int main(void){
+
+//Helpers for input and output
+
+   int N;
+   cin >> N;
+   
+   vector<char> s;
+    vector<int> X;
+   char temp;
+    int tempint;
+   for(int i = 0; i < N; i++){
+      cin >> temp >> tempint;
+        s.push_back(temp);
+        X.push_back(tempint);
+   }
+   
+   median(s,X);
+   return 0;
+}
+

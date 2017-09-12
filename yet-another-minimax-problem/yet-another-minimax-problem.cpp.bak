@@ -1,0 +1,108 @@
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+#include <stdio.h>
+using namespace std;
+
+
+//const Mask = {0xffffffff, 0x7fffffff, 0x3fffffff, 0x1fffffff, 0x0fffffff, 0x07ffffff}
+
+unsigned int recursive_min_xor(unsigned int* begin1, unsigned int* end1 ,unsigned int* begin2, unsigned int* end2,unsigned int mask){
+
+  cout << "== start recursive for sizes: "<<end1-begin1<<" "<<end2-begin2<<"mask: "<<mask<<"\n";
+  
+  //if one of the arrays is empty return 
+  if(begin1 == end1 || begin2 == end2)
+    return 0xffffffff;
+  
+  unsigned int bit = mask - (mask >> 1);
+  if(end1-begin1 == 1){
+    unsigned int minxor = 0xffffffff;
+    for(unsigned int* it=begin2;it<end2;it++){
+      printf("0x%x\n",((*it) & mask) ^ ((*begin1) & mask));
+      if(minxor > (((*it) & mask) ^ ((*begin1) & mask))){
+	printf("update\n");
+	minxor = ((*it) & mask) ^ ((*begin1) & mask);
+      }
+    }
+    
+    cout<<"recu - returning:"<<minxor<<"\n";
+    return minxor;
+  
+  }
+
+  if(end2-begin2 == 1){
+    unsigned int minxor = 0xffffffff;
+    for(unsigned int* it=begin1;it<end1;it++)
+      if(minxor> (((*it) & mask) ^ ((*begin2) & mask)))
+	minxor = ((*it) & mask) ^ ((*begin2) & mask);
+    return minxor;
+    
+  }
+  unsigned int* it1 = begin1;
+  unsigned int v1 = *begin1 & bit;
+
+  while( (it1 != end1) && (v1 == (*it1 & bit)))
+    it1++;
+
+
+  unsigned int* it2 = begin2;
+  unsigned int v2 = *begin2 & bit;
+
+  
+  while( (it2 != end2) && (v2 == (*it2 & bit)))
+    it2++;
+  
+  unsigned int m1 = recursive_min_xor(begin1,it1,begin2,it2,mask>>1);
+  unsigned int m2 = recursive_min_xor(it1,end1,it2,end2,mask>>1);
+  unsigned int m = m1 < m2 ? m1 : m2;
+  if(m == 0xffffffff)
+    return m;
+  else{
+    if(v1 == v2)
+      return m;
+    else
+      return bit+m;
+  }  
+}
+
+
+
+unsigned int minxor(unsigned int* start,unsigned int* end){
+
+  for(unsigned int bit = 0x10000000;bit>0;bit =bit>>1){
+    //cout <<"bit is "<<bit<<"\n";
+    for(unsigned int* it = start;it<end-1;it++){
+      if( (*it & bit) != (*(it+1) & bit) ){
+	cout <<"FOUND bit is "<<bit<<"\n";
+	return bit+recursive_min_xor(start,it+1,it+1,end,bit-1);
+      }
+
+    }	
+  }
+  return 0;
+}
+int main() {
+    /* Enter your code here. Read input from STDIN. Print output to STDOUT */   
+    unsigned int n;
+    cin >> n;
+    unsigned int* A = (unsigned int*) malloc(sizeof(unsigned int)*n);
+    vector<unsigned int>* vec = new vector<unsigned int>(n,0);
+    for(unsigned int i = 0;i<n;i++)
+      cin >> (*vec)[i];
+
+    sort(vec->begin(),vec->end());
+
+    unsigned int k  =0;
+    for(auto i = vec->begin(); i != vec->end();i++)
+      A[k++] = *i;
+
+    for(unsigned int i = 0;i<n;i++)
+      printf("0x%x ",A[i]);
+    //cout << "\n";
+    cout << minxor(A,A+n);
+    
+    return 0;
+}
