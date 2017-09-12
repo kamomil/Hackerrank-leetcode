@@ -69,9 +69,9 @@ void PriorityQueue<T,Compare>::pop(){
     int l = 2*i+1;
     int r = 2*i+2;
     n = i;
-    if(l<heap_sz && cmp((*queue)[l],(*queue)[i]))
+    if(l<heap_sz && compare((*queue)[l],(*queue)[i]))
       n = l;
-    else if(r<heap_sz && cmp((*queue)[r],(*queue)[i]))
+    else if(r<heap_sz && compare((*queue)[r],(*queue)[i]))
       n = r;
 
     T tmp = (*queue)[i];
