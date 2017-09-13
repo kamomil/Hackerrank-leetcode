@@ -6,7 +6,7 @@ int main(){
 
   PriorityQueue<int,std::less<int>> q(10);
 
-  std::cout << q.empty()<<"\n";
+  //std::cout << q.empty()<<"\n";
 
   q.push(7);
   q.push(11);
@@ -23,7 +23,17 @@ int main(){
   std::cout << "top is: "<<q.top()<<"\n";
   q.pop();
   std::cout << "top is: "<<q.top()<<"\n";
-  q.pop();
+
+  q.debug();
+  q.push(1);
+  q.debug();
+  
+    std::cout << "top is: "<<q.top()<<"\n";
+  q.push(4);
+    std::cout << "top is: "<<q.top()<<"\n";
+  q.push(0);
+    std::cout << "top is: "<<q.top()<<"\n";
+
   
   return 0;
 }

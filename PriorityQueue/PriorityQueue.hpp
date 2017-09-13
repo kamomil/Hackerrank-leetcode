@@ -19,6 +19,10 @@ public:
   
   void push(T t);
   void pop();
+
+  
+  void debug();
+
 };
 
 #include "PriorityQueue.cpp"

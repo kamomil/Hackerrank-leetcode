@@ -1,4 +1,4 @@
-
+#include <iostream>
 //#include <functional>
 //#include <vector>
 /*
@@ -48,7 +48,7 @@ void PriorityQueue<T,Compare>::push(T t){
 
   (*queue)[heap_sz++] = t;
   int idx = heap_sz-1;
-  while(idx > 0 && !compare((*queue)[idx],(*queue)[parent(idx)] )){
+  while(idx > 0 && !compare((*queue)[parent(idx)],(*queue)[idx] )){
 
     T tmp = (*queue)[idx];
     (*queue)[idx] = (*queue)[parent(idx)];
@@ -59,6 +59,16 @@ void PriorityQueue<T,Compare>::push(T t){
   
 }
 
+template <class T,class Compare>
+void PriorityQueue<T,Compare>::debug(){
+  std::cout << "== DEBUG ==\n";
+  std::cout << "heap size is "<<heap_sz << "\n";
+  for(int i=0;i<heap_sz;i++)
+    std::cout << (*queue)[i] << " ";
+  std::cout << "\n";
+}
+
+  
 template <class T,class Compare>
 void PriorityQueue<T,Compare>::pop(){
   (*queue)[0] = (*queue)[--heap_sz];
@@ -71,7 +81,7 @@ void PriorityQueue<T,Compare>::pop(){
     n = i;
     if(l<heap_sz && compare((*queue)[l],(*queue)[i]))
       n = l;
-    else if(r<heap_sz && compare((*queue)[r],(*queue)[i]))
+    else if(r<heap_sz && compare((*queue)[r],(*queue)[n]))
       n = r;
 
     T tmp = (*queue)[i];
