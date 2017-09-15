@@ -12,8 +12,6 @@ int boyer_more_preprocessing(char* string,int n, int** L, int** H,int** B){
 
   return 0;
 }
-
-
 int get_bad_char_table(char* string,int n,int** B){
 
   //cout <<n;
@@ -46,6 +44,81 @@ int get_bad_char_table(char* string,int n,int** B){
   *B = Bnew;
   return 0;
 }
+
+int z_algorithm(char* str, int n,int** z){
+
+  *z = new int[n];
+
+  (*z)[0] = n;
+  int l,r;
+  l = r = -1;
+
+  for(int i=1;i<n;i++){
+    cout << "i = "<<i<<" l ="<<l<< " r ="<<r<<"\n";
+    if(i>=r){
+      int j;
+      for(j=0;i+j<n && str[j]==str[i+j];j++)
+	;
+      (*z)[i] = j;
+      if(j == 0){
+	l = r = -1;
+      }
+      else{
+	l = i;
+	r = i+j;
+      }
+    }
+    else if(i-l+(*z)[i-l]<r-l){
+      cout <<"here\n";
+      (*z)[i] = (*z)[i-l];
+    }
+    else{
+      cout <<"there\n";
+      int k;
+      for(k=r;k<n && str[k] == str[k-l-1];k++)
+	;
+      
+      (*z)[i] = k-i;
+      l = i;
+      r = k;
+    }
+  }
+  return 0;
+}
+
+int get_good_suffix_tables(char* string,int n,int** L,int** H){
+
+  *L = new int[n];
+  if(!(*L))
+    return -1;
+  memset(*L,-1,sizeof(int)*n);
+  char* str_reverse = new char[n+1];
+
+  if(!str_reverse)
+    return -1;
+
+  for(int i = 0;i<n;i++)
+    str_reverse[n-i-1] = string[i];
+
+  str_reverse[n]='\0';
+  cout <<"str reverse: "<< str_reverse <<"\n";
+  int* z_vals;
+
+  z_algorithm(str_reverse, n, &z_vals);
+
+  for(int i=0;i<n;i++)
+    cout <<"z["<<i<<"] = "<<z_vals[i]<<"\n";
+
+  for(int i=n-1;i<-1;i--){
+    if(z_vals[i]>0)
+      (*L)[n-z_vals[i]] = i;
+  }
+  for(int i=0;i<n;i++)
+    cout <<"L["<<i<<"] = "<<(*L)[i]<<" ";
+  cout << "\n";
+ 
+}
+
 
 int grep(char* str,int ns,const char* text, int nt,list<int>& matches,int* bad_char_t){
 
@@ -87,6 +160,9 @@ int main( int argc, char *argv[] ){
   get_bad_char_table(str,strlen(str),&B);
 
   cout << str << "B created \n";
+  int* L;
+  int* H;
+  get_good_suffix_tables(str,strlen(str),&L,&H);
   //return 0;
   string line;
   ifstream myfile (file);
