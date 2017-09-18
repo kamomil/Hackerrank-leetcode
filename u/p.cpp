@@ -9,14 +9,6 @@ enum state{
   READ_10_BYTE
 };
 
-void pack_unicode_to_int(unsigned char* unicode,int bytes,int* unicode_int);
-
-int write_unicode(unsigned char* unicode,ofstream out_file,int bytes){
-
-  
-  return 0;
-}
-
 void pack_unicode_to_int(unsigned char* unicode,int bytes,unsigned int* unicode_int){
 
   //cout<< "pack_unicode_to_int bytes = "<<bytes<<"\n";
@@ -65,7 +57,7 @@ void pack_unicode_to_int(unsigned char* unicode,int bytes,unsigned int* unicode_
   
 }
 
-int main(){
+int main(int argc, char* argv[]){
 
   char utf_byte = 0;
 
@@ -82,26 +74,29 @@ int main(){
 
   unsigned int pref = 0xfeff;
   out_file.write((char*)&pref,4);
-  pref = 0x0020;
-  out_file.write((char*)&pref,4);
   int nbytes = 0;
   int byte_idx = 0;
   int i = 0;
-  while ( cin >> utf_byte ){
+  ifstream infile (argv[1], ios::in|ios::binary);
+  if( ! infile.is_open())
+    return -1;
+  
+  while ( infile.read (&utf_byte, 1) ){
 
-    cout <<utf_byte<<"\n";
+    cout <<i<<" ";
+    printf("0x%02x\n",utf_byte);
     i++;
-    if(i==20)
-      return 0;
+    //if(i==20)
+    //  return 0;
     switch(st){
 
     case READ_LEADING_BYTE:
+
       if((utf_byte & 0x80) == 0){//if first bit is 0
 	unicode[0]  = utf_byte;
 	unsigned int unicode_int = 0;
 	pack_unicode_to_int(unicode,1,&unicode_int);
 	out_file.write((char*)&unicode_int,4);
-	return 0;
 	memset(unicode,0,4);
       }
       else if( ((utf_byte ^ 0xc0) & 0xe0) == 0){
@@ -153,6 +148,7 @@ int main(){
       break;
     }
   }
+  infile.close();
   
    return 0;
    
