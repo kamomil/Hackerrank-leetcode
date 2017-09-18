@@ -9,53 +9,94 @@ enum state{
   READ_10_BYTE
 };
 
-void pack_unicode_to_int(unsigned char* unicode,int bytes,unsigned int* unicode_int){
+class Utf8{
 
-  //cout<< "pack_unicode_to_int bytes = "<<bytes<<"\n";
-  
-  //for(int i=0;i<bytes;i++)
-  //  printf("0x%02x\n",unicode[i]);
-    
-  if(bytes == 1)
+public:
+  virtual void pack_unicode_to_int(unsigned char* unicode,unsigned int* unicode_int) = 0;
+};
+
+/////
+class Utf8_1 : public Utf8{
+
+public:
+  virtual void pack_unicode_to_int(unsigned char* unicode,unsigned int* unicode_int){
     *unicode_int = (unsigned int)unicode[0];
-  else{
+  }
+};
+
+class Utf8_2 : public Utf8{
+
+public:
+  virtual void pack_unicode_to_int(unsigned char* unicode,unsigned int* unicode_int){
     int nbits = 2;
     *unicode_int = 0;
     int shift = 0;
-    for(int i = bytes-1;i>0;i--){
-
-      if(bytes == 4 && i == 1)
-	nbits = 3;
+    for(int i = 1;i>0;i--){
       unsigned char mask = (1 << nbits) -1;//create a mask of last shift bits
       unsigned char last_nbits = (unicode[i-1] & mask);
+      unicode[i] |= (last_nbits << 8-nbits);
+      unicode[i-1] >>= nbits;
+      nbits+=2;
+      unsigned int unicode_i = (unsigned int)unicode[i];
+      unicode_i = (unicode_i << shift);
+      *unicode_int |= unicode_i;
+      shift+=8;
+    }
+    unsigned int u = (unsigned int) (unicode[0] & 0x07);  
+    *unicode_int |= (u<<8);
+    //printf("0x%04x\n",*unicode_int);
 
-      if(bytes == 4 && i == 1)
-	unicode[i] |= (last_nbits << 4);
-      else
-	unicode[i] |= (last_nbits << 8-nbits);
+  }
+};
+class Utf8_3 : public Utf8{
+
+public:
+  virtual void pack_unicode_to_int(unsigned char* unicode,unsigned int* unicode_int){
+    int nbits = 2;
+    *unicode_int = 0;
+    int shift = 0;
+    for(int i = 2;i>0;i--){
+      unsigned char mask = (1 << nbits) -1;//create a mask of last shift bits
+      unsigned char last_nbits = (unicode[i-1] & mask);
+      unicode[i] |= (last_nbits << 8-nbits);
       unicode[i-1] >>= nbits;
       nbits+=2;
 
       unsigned int unicode_i = (unsigned int)unicode[i];
-
       unicode_i = (unicode_i << shift);
-
       *unicode_int |= unicode_i;
       shift+=8;
-      
     }
-    if(bytes == 2){
-      unsigned int u = (unsigned int) (unicode[0] & 0x07);
-      
-      *unicode_int |= (u<<8);
-    }
-
-    //printf("0x%04x\n",*unicode_int);
-
   }
-    
-  
-}
+};
+class Utf8_4 : public Utf8{
+
+public:
+  virtual void pack_unicode_to_int(unsigned char* unicode,unsigned int* unicode_int){
+    int nbits = 2;
+    *unicode_int = 0;
+    int shift = 0;
+    for(int i = 3;i>1;i--){
+      unsigned char mask = (1 << nbits) -1;//create a mask of last shift bits
+      unsigned char last_nbits = (unicode[i-1] & mask);
+      unicode[i] |= (last_nbits << 8-nbits);
+      unicode[i-1] >>= nbits;
+      nbits+=2;
+      unsigned int unicode_i = (unsigned int)unicode[i];
+      unicode_i = (unicode_i << shift);
+      *unicode_int |= unicode_i;
+      shift+=8;
+    }
+
+    nbits = 3;
+    unsigned char mask = (1 << nbits) -1;//create a mask of last shift bits
+    unsigned char last_nbits = (unicode[0] & mask);
+    unicode[1] |= (last_nbits << 8-nbits);
+    unsigned int unicode_i = (unsigned int)unicode[1];
+    unicode_i = (unicode_i << 16);
+    *unicode_int |= unicode_i;
+  }
+};
 
 int main(int argc, char* argv[]){
 
@@ -63,6 +104,12 @@ int main(int argc, char* argv[]){
 
   unsigned char unicode[4] = {0,0,0,0};
 
+  Utf8* packer[4];
+  packer[0] = new Utf8_1();
+  packer[1] = new Utf8_2();
+  packer[2] = new Utf8_3();
+  packer[3] = new Utf8_4();
+  
   ofstream out_file;
 
   state st = READ_LEADING_BYTE;
@@ -95,7 +142,8 @@ int main(int argc, char* argv[]){
       if((utf_byte & 0x80) == 0){//if first bit is 0
 	unicode[0]  = utf_byte;
 	unsigned int unicode_int = 0;
-	pack_unicode_to_int(unicode,1,&unicode_int);
+	Utf8* p = packer[0];
+	p->pack_unicode_to_int(unicode,&unicode_int);
 	out_file.write((char*)&unicode_int,4);
 	memset(unicode,0,4);
       }
@@ -131,7 +179,7 @@ int main(int argc, char* argv[]){
 	byte_idx++;
 	if(byte_idx == nbytes){
 	  unsigned int unicode_int = 0;
-	  pack_unicode_to_int(unicode,nbytes,&unicode_int);
+	  packer[nbytes-1]->pack_unicode_to_int(unicode,&unicode_int);
 	  out_file.write((char*)&unicode_int,4);
 	  memset(unicode,0,4);
   
@@ -153,4 +201,3 @@ int main(int argc, char* argv[]){
    return 0;
    
 }
-
