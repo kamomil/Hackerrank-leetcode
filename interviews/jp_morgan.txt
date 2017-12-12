@@ -1,0 +1,57 @@
+
+1) givaen the code:
+
+#include <iostream>
+
+int global = 0;
+
+void foo()
+{
+  int local = global;
+  local++;
+  global = local; 
+}
+
+for(int index = 0; index < 10; index++)
+  foo();
+
+
+//we have 10 threads, each iterating the function 10 times, what are the largest and smallest possible value of global ?
+
+//smallest is 2, in the following scenario:
+//thread 10th  runs until line 10;
+//thread 9th runs 9 iterations 
+//threads 1-8 all runs until they end,
+//thread 10th complete it's first iteration so now global = 1;
+//thread 9th runs it's last iteration until line 10 so it has local=2
+//thread 10th complete all of his iterations 
+//thread 9th complete it's last iteration and set global=2
+  
+//write a function that reverse the order of words in a string with
+O(n) time and O(1) space
+
+//"Hello_World_Ni ce_To_Meet_You" --> "You_Meet_To_Nice_World_Hello"
+ 
+int reverse_words(char* s, sz){
+  reverse(s, sz);
+  int k = 0;
+  for(int i=0;i<sz;i=i+k){
+    k=i;
+    while(k<sz && s[k] != '_')
+      k++;
+    reverse(s+i,k-i);
+  }
+}
+
+int reverse(char* s, int sz){
+
+  char c =0;
+  
+  for(int i=0;i<sz/2;i++){
+    c = s[sz-1];
+    s[sz-i-1] = s[i];
+    s[i] = c;
+  }
+
+}
+  
