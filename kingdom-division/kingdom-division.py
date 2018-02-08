@@ -19,10 +19,13 @@ class Node:
 
 def universal_memoization_decorator(computing_func):
     cache = {}
-    print(len(cache))
+
     def wrapped(idx,parent,parent_relation):
+        print("%d %d:" % (idx.i, parent_relation))
         if (idx,parent_relation) not in cache:
             cache[(idx,parent_relation)] = computing_func(idx,parent,parent_relation)
+        else:
+            print("%d %d cached" % (idx.i, parent_relation))
         return cache[(idx,parent_relation)]
 
     return wrapped
@@ -49,24 +52,42 @@ def kingdoms(curr_node,parent,parent_relation):
 
     else:
         total = 0
+        mult_of_diffs = 1
+        mult_of_both_arr = [None] * curr_node.num_nei()
+
+        mult_of_both = 1
+        for i in range(curr_node.num_nei()-1,0,-1):
+            nei = curr_node.nei[i]
+            if(nei.i == parent):
+                continue
+
+            n = kingdoms(nei, idx, SAME)
+            n += kingdoms(nei, idx, DIFFERENT)
+            mult_of_both = (mult_of_both * (n % MOD)) % MOD
+            mult_of_both_arr[i] = mult_of_both
+
+        mult_of_both_arr.append(1)
+        #now mult_of_both_arr[i] contains mult of both except if it is the first neiboughr or the parent, then it has None
+
         for (current_idx,current_nei) in enumerate(curr_node.nei):
-            s = 1
+
             if current_nei.i == parent:
                 continue
 
-            for (other_idx,other_nei) in enumerate(curr_node.nei):
-                if other_nei.i == parent:
-                    continue
-                n = 0
-                if other_idx < current_idx:
-                    n = kingdoms(other_nei,idx,DIFFERENT)
-                elif other_idx == current_idx:
-                    n = kingdoms(other_nei, idx, SAME)
-                else:
-                    n = kingdoms(other_nei, idx, SAME)
-                    n += kingdoms(other_nei, idx, DIFFERENT)
-                s = (s * (n % MOD)) % MOD;
+            if current_idx > 0:
+                mult_of_diffs_idx = current_idx-1 if curr_node.nei[current_idx-1].i != parent else current_idx-2
+
+                n = 1
+                if mult_of_diffs_idx > -1:
+                    n = kingdoms(curr_node.nei[mult_of_diffs_idx], idx, DIFFERENT)
+                mult_of_diffs = (mult_of_diffs * (n % MOD)) % MOD;
+
+            same = kingdoms(current_nei, idx, SAME)
+            mult_of_both_arr_idx = current_idx+1 if mult_of_both_arr[current_idx+1] else current_idx+2
+
+            s = ((same % MOD) * mult_of_diffs * mult_of_both_arr[mult_of_both_arr_idx]) % MOD
             total = (total + s) % MOD
+
         return total
 
 
